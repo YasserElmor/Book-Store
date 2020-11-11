@@ -1,8 +1,16 @@
-const express = require('express'),
-			router  = express.Router();
+const express 				 = require('express'),
+			router  				 = express.Router(),
+			adminRouter      = require("./admin");
+
 
 router.get('/', (req, res, next) => {
-	res.render("shop");
+	const products = adminRouter.products;
+	res.render("shop",{
+		pageTitle: "Products",
+		products: products,
+		path: '/',
+		hasProducts: products.length > 0
+	});
 })
 
 
