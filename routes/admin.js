@@ -1,30 +1,17 @@
-const express 				 = require('express'),
-			router  				 = express.Router();
+const express = require('express'),
+  router = express.Router(),
+  adminController = require('../controllers/admin');
 
 
-const products = [];
 
-// renders the add-product.ejs file which comprises the add-product form
-router.get('/add-product', (req, res, next) => {
-	res.render('add-product', {
-		pageTitle: "Add Products"
-	});
-});
+// renders the admin/add-product.ejs file which comprises the add-product form
+router.get('/add-product', adminController.getAddProducts);
 
 // handles the post requests coming from the add-products form
-router.post('/add-product', (req, res, next) => {
-	products.push({
-		title: req.body.title,
-		imageUrl: req.body.imageurl,
-		description: req.body.description,
-		price: req.body.price
-	})
-  res.send(`<h1>${products.length}</h1>`
-);
-});
+router.post('/add-product', adminController.postAddProducts);
+
+//renders the admin/products.ejs file
+router.get('/products', adminController.getAdminProducts);
 
 
-module.exports = {
-  router : router,
-	products: products
-}
+module.exports = router;
