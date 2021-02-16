@@ -1,17 +1,11 @@
 const path = require('path');
 const fs = require('fs');
 
-const file_path = path.join(path.dirname(process.mainModule.filename), 'data', 'products.json');
 
-const getProductsFromFile = cb => {
-  fs.readFile(file_path, (err, fileContent) => {
-    if (err || JSON.parse(JSON.stringify(fileContent)).data.length === 0) {
-      cb([]);
-    } else {
-      cb(JSON.parse(fileContent));
-    }
-  });
-};
+const file_path = path.join(path.dirname(process.mainModule.filename), 'data', 'products.json');
+const fetch_items_from_file = require('../utils/fetch-items-from-file');
+const getProductsFromFile = fetch_items_from_file.getProductsFromFile.bind(this, file_path);
+
 
 class Product {
   constructor(title, imageUrl, description, price) {

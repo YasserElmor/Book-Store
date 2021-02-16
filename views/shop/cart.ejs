@@ -5,7 +5,16 @@
 
 <body>
 
+
   <%- include ("../partials/header") %>
 
-
+  <% if(cart.length){ %>
+  <div class="grid">
+    <% cart.map(product => { %>
+      <h1><%= product.productData.title %></h1>
+    <% }) %>
+  </div>
+  <% } else { %>
+  <h1>No Products Found</h1>
+  <% } %>
 <%- include ("../partials/footer") %>
