@@ -45,8 +45,30 @@ class Cart {
     });
   }
 
+  //this takes the change in price in a certain item and deducts it multiplied by its quantity from the total price of the cart to reflect the product update
+  static updateTotalPrice(id, oldPrice, newPrice) {
+    getCartFromFile(cart => {
+      const updatedProduct = cart.products.find(product => product.id === id);
+      cart.totalPrice -= ((oldPrice - newPrice) * updatedProduct.quantity);
+      fs.writeFile(file_path, JSON.stringify(cart), err => {
+        console.log(err);
+      });
+    });
+  }
+
+
+  static deleteProduct(id, productPrice) {
+    getCartFromFile(cart => {
+      const productIndex = cart.products.findIndex(product => product.id === id);
+      const product = cart.products[productIndex];
+      cart.totalPrice -= productPrice * product.quantity;
+      cart.products.splice(productIndex, 1);
+      fs.writeFile(file_path, JSON.stringify(cart), err => {
+        console.log(err);
+      });
+    });
+  }
+
 }
-
-
 
 module.exports = Cart;

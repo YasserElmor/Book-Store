@@ -19,6 +19,9 @@ router.get('/cart', shopController.getCart);
 //sends the product ID in a post request
 router.post('/cart', shopController.postCart);
 
+//deletes a cart product from the db
+router.post('/cart/delete-product', shopController.deleteCartProduct);
+
 //renders the shop/checkout.ejs file
 router.get('/checkout', shopController.getCheckout);
 

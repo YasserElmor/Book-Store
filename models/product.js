@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const Cart = require('./cart');
 
 
 const file_path = path.join(path.dirname(process.mainModule.filename), 'data', 'products.json');
@@ -29,6 +30,7 @@ class Product {
     getProductsFromFile(products => {
       const productIndex = products.findIndex(p => p.id === id);
       const product = products[productIndex];
+      Cart.updateTotalPrice(id, product.price, price);
       [product.title, product.imageUrl, product.description, product.price] = [title, imageUrl, description, price];
       fs.writeFile(file_path, JSON.stringify(products), err => {
         console.log(err);
@@ -39,6 +41,7 @@ class Product {
   static delete(id) {
     getProductsFromFile(products => {
       const productIndex = products.findIndex(p => p.id === id);
+      Cart.deleteProduct(id, products[productIndex].price);
       products.splice(productIndex, 1);
       fs.writeFile(file_path, JSON.stringify(products), err => {
         console.log(err);
