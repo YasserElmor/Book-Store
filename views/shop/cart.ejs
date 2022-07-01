@@ -1,0 +1,37 @@
+<%- include ("../partials/head") %>
+<title><%= pageTitle %></title>
+
+</head>
+
+<body>
+
+
+  <%- include ("../partials/header") %>
+
+  <% if(cart.length){ %>
+  <div class="grid">
+    <% cart.map(product => { %>
+      <article class="card product-item">
+        <header class="card__header">
+          <h1 class="product__title"><%= product.productData.title %>(<%= product.quantity %>)</h1>
+        </header>
+        <div class="card__image">
+          <img src="<%= product.productData.imageUrl %>" alt="<%= product.productData.title %>">
+        </div>
+        <div class="card__content">
+          <h2 class="product__price"><%= product.productData.price * product.quantity %>$</h2>
+          <p class="product__description"><%= product.description %></p>
+        </div>
+        <div class="card__actions">
+          <form class="" action="/cart/delete-product" method="post">
+            <input type="hidden" name="productId" value="<%= product.productData.id %>">
+            <button type="submit" class='btn'>Delete</button>
+          </form>
+        </div>
+      </article>
+    <% }) %>
+  </div>
+  <% } else { %>
+  <h1>No Products Found</h1>
+  <% } %>
+<%- include ("../partials/footer") %>
