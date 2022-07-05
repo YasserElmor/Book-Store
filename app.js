@@ -1,43 +1,78 @@
 const express = require('express');
 const app = express();
-const path = require('path');
-const rootDir = require('./util/path');
-const {mongoConnect} = require('./util/database');
-const User = require('./models/user');
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({
     extended: false
 }));
 
+const mongoose = require('mongoose');
+const MONGODB_URI = 'mongodb+srv://admin:01065651408@learningcluster.5febr.mongodb.net/shop?retryWrites=true&w=majority';
+const session = require('express-session');
+const MongoDBStore = require('connect-mongodb-session')(session);
+const store = new MongoDBStore({
+    uri: MONGODB_URI,
+    collection: 'sessions',
+
+});
+app.use(session({
+    secret: 'some really long string value used to hash our ID',
+    resave: false,
+    saveUninitialized: false,
+    store: store
+}));
+
+const path = require('path');
+const rootDir = require('./util/path');
+const User = require('./models/user');
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const errorRoutes = require('./routes/error');
+const authRoutes = require('./routes/auth');
 app.use(express.static(path.join(rootDir, 'public')));
 app.set('view engine', 'ejs');
 
 app.use((req, res, next) => {
-    User.findById('62c0079bacd256e791ac8b3f')
-    .then(user => {
-        //req.user could be accessed anywhere by upcoming middlewares as long as next() is called after storing the value inside it
-        //we're creating a new User here to access instance methods, since data retreived from the DB have no access to such methods
-        req.user = new User(user.username, user.email, user.cart, user._id);
-        //req.locals.user could also be accessed by upcoming middlewares as long as next() is called after storing the value inside it
-        /*res.locals.user = user;*/ 
-    })
-    .catch(err =>{
-        throw err;
-    }).finally(() => {
-        next();
-    });
-});
+    if(!req.session.user){
+        //the conditional would bypass the middleware when the session is destroyed
+        //and we don't have access to ID which happens when we're logged out
+        return next();
+    }
+    User.findById(req.session.user._id)
+        .then(user => {
+            req.user = user;
+            next();
+        })
+        .catch(err => {
+            throw err;
+        });
+})
 
 app.use(shopRoutes);
 app.use('/admin', adminRoutes);
+app.use(authRoutes);
 app.use(errorRoutes);
 
 
 
-mongoConnect(() => {
-    app.listen(3000);
-});
+mongoose.connect(MONGODB_URI)
+    .then(() => {
+        User.findOne()
+            .then(user => {
+                if (!user) {
+                    //used to initialize our first user document when the users document is still vacant
+                    const user = new User({
+                        name: "Yasser",
+                        email: "elmor.yasser@gmail.com",
+                        cart: {
+                            items: []
+                        },
+                    });
+                    user.save();
+                }
+            });
+        app.listen(3000);
+    })
+    .catch(err => {
+        throw err;
+    });

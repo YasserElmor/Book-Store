@@ -22,8 +22,8 @@ router.post('/cart', shopController.postCart);
 //deletes a cart product from the db
 router.post('/cart-delete-item', shopController.deleteCartProduct);
 
-// //renders the shop/checkout.ejs file
-// router.get('/checkout', shopController.getCheckout);
+//renders the shop/checkout.ejs file
+router.get('/checkout', shopController.getCheckout);
 
 //renders the shop/orders.ejs file
 router.get('/orders', shopController.getOrders);
