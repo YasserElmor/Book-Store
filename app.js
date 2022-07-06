@@ -6,6 +6,9 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 
+const csrf = require('csurf');
+const csrfProtection = csrf();
+
 const mongoose = require('mongoose');
 const MONGODB_URI = 'mongodb+srv://admin:01065651408@learningcluster.5febr.mongodb.net/shop?retryWrites=true&w=majority';
 const session = require('express-session');
@@ -35,7 +38,7 @@ app.set('view engine', 'ejs');
 app.use((req, res, next) => {
     if (!req.session.user) {
         //the conditional would bypass the middleware when the session is destroyed
-        //and we don't have access to ID which happens when we're logged out
+        //and we don't have access to ID; which happens when we're logged out
         return next();
     }
     User.findById(req.session.user._id)
@@ -46,7 +49,14 @@ app.use((req, res, next) => {
         .catch(err => {
             throw err;
         });
-})
+});
+
+app.use(csrfProtection);
+app.use((req, res, next) => {
+    res.locals.isAuthenticated = req.session.isAuthenticated;
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
 
 app.use(shopRoutes);
 app.use('/admin', adminRoutes);

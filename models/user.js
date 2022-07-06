@@ -72,7 +72,7 @@ userSchema.methods.addOrder = function () {
                 })),
                 user: {
                     userId: this._id,
-                    name: this.name
+                    email: this.email
                 }
             });
             return order.save();
