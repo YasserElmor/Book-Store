@@ -5,7 +5,7 @@ const {
 const Order = require('./order');
 
 const userSchema = new Schema({
-    name: {
+    password: {
         type: String,
         required: true,
     },
@@ -65,7 +65,9 @@ userSchema.methods.addOrder = function () {
         .then(products => {
             const order = new Order({
                 products: products.map(obj => ({
-                    product: {...obj.productId._doc},
+                    product: {
+                        ...obj.productId._doc
+                    },
                     quantity: obj.quantity
                 })),
                 user: {

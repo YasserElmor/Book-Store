@@ -1,6 +1,7 @@
 const express = require('express'),
   router = express.Router(),
-  shopController = require('../controllers/shop');
+  shopController = require('../controllers/shop'),
+  isAuth = require('../middleware/is-auth');
 
 
 
@@ -14,22 +15,22 @@ router.get('/products', shopController.getProducts);
 router.get('/products/:productId', shopController.getProduct);
 
 //renders the shop/cart.ejs file
-router.get('/cart', shopController.getCart);
+router.get('/cart', isAuth, shopController.getCart);
 
-//sends the product ID in a post request
-router.post('/cart', shopController.postCart);
+//adds a product to the cart of a user
+router.post('/cart', isAuth, shopController.postCart);
 
 //deletes a cart product from the db
-router.post('/cart-delete-item', shopController.deleteCartProduct);
+router.post('/cart-delete-item', isAuth, shopController.deleteCartProduct);
 
 //renders the shop/checkout.ejs file
-router.get('/checkout', shopController.getCheckout);
+router.get('/checkout', isAuth, shopController.getCheckout);
 
 //renders the shop/orders.ejs file
-router.get('/orders', shopController.getOrders);
+router.get('/orders', isAuth, shopController.getOrders);
 
 //adds an order to the orders collection
-router.post('/create-order', shopController.postAddOrder);
+router.post('/create-order', isAuth, shopController.postAddOrder);
 
 
 module.exports = router;

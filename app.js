@@ -33,7 +33,7 @@ app.use(express.static(path.join(rootDir, 'public')));
 app.set('view engine', 'ejs');
 
 app.use((req, res, next) => {
-    if(!req.session.user){
+    if (!req.session.user) {
         //the conditional would bypass the middleware when the session is destroyed
         //and we don't have access to ID which happens when we're logged out
         return next();
@@ -57,20 +57,6 @@ app.use(errorRoutes);
 
 mongoose.connect(MONGODB_URI)
     .then(() => {
-        User.findOne()
-            .then(user => {
-                if (!user) {
-                    //used to initialize our first user document when the users document is still vacant
-                    const user = new User({
-                        name: "Yasser",
-                        email: "elmor.yasser@gmail.com",
-                        cart: {
-                            items: []
-                        },
-                    });
-                    user.save();
-                }
-            });
         app.listen(3000);
     })
     .catch(err => {

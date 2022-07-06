@@ -1,5 +1,4 @@
 const Product = require('../models/product');
-
 exports.getAddProducts = (req, res, next) => {
   res.render('admin/edit-product', {
     pageTitle: "Add Products",
@@ -17,10 +16,10 @@ exports.postAddProducts = (req, res, next) => {
     price
   } = req.body;
   const product = new Product({
-    title:title,
-    price:price,
-    description:description,
-    imageUrl:imageUrl,
+    title: title,
+    price: price,
+    description: description,
+    imageUrl: imageUrl,
     userId: req.user._id
   });
   product.save()
@@ -83,10 +82,10 @@ exports.postEditProduct = (req, res, next) => {
 exports.postDeleteProduct = (req, res, next) => {
   const productId = req.body.productId;
   Product.findByIdAndRemove(productId)
-  .then(() => {
-    res.redirect('/admin/products');
-  })
-  .catch(err => {
-    throw err;
-  });
+    .then(() => {
+      res.redirect('/admin/products');
+    })
+    .catch(err => {
+      throw err;
+    });
 };
