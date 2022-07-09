@@ -3,8 +3,7 @@ const User = require('../models/user');
 const crypto = require('crypto');
 
 const sgMail = require('@sendgrid/mail');
-const SENDGRID_API_KEY = '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';
-sgMail.setApiKey(SENDGRID_API_KEY);
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 exports.getLogin = (req, res, next) => {
     let errMessage = req.flash('error')[0];
