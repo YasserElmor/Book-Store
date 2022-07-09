@@ -1,7 +1,6 @@
 const Product = require('../models/product');
 const Order = require('../models/order');
 
-
 exports.getHomePage = (req, res, next) => {
   Product.find()
     .then(products => {
@@ -30,6 +29,7 @@ exports.getProducts = (req, res, next) => {
 
 exports.getProduct = (req, res, next) => {
   const prodId = req.params.productId;
+
   Product.findById(prodId)
     .then(product => {
       res.render('shop/product-details', {

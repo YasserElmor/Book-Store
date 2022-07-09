@@ -9,6 +9,7 @@ app.use(bodyParser.urlencoded({
 const csrf = require('csurf');
 const csrfProtection = csrf();
 
+const flash = require('connect-flash');
 const mongoose = require('mongoose');
 const MONGODB_URI = 'mongodb+srv://admin:01065651408@learningcluster.5febr.mongodb.net/shop?retryWrites=true&w=majority';
 const session = require('express-session');
@@ -51,6 +52,7 @@ app.use((req, res, next) => {
         });
 });
 
+app.use(flash());
 app.use(csrfProtection);
 app.use((req, res, next) => {
     res.locals.isAuthenticated = req.session.isAuthenticated;
