@@ -3,6 +3,7 @@ const {
     Schema
 } = mongoose;
 const Order = require('./order');
+const Product = require('./product');
 
 const userSchema = new Schema({
     password: {
@@ -57,7 +58,27 @@ userSchema.methods.deleteProduct = function (prodId) {
     return this.save();
 };
 
+userSchema.methods.cleanCart = async function () {
+    let prodId, product;
+    const {
+        cart: {
+            items
+        }
+    } = this;
+    for (let i = 0; i < items.length; i++) {
+        prodId = items[i].productId;
+        product = await Product.findById(prodId);
+        if (product) {
+            continue;
+        }
+        items.splice(i, 1);
+    }
+    this.cart.items = items;
+    return await this.save();
+};
+
 userSchema.methods.getCart = async function () {
+    await this.cleanCart();
     const user = await this.populate('cart.items.productId');
     return user.cart.items;
 };

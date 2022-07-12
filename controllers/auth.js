@@ -1,7 +1,9 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const crypto = require('crypto');
-
+require('dotenv').config({
+    path: './sendgrid.env'
+});
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
