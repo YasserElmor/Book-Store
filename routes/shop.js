@@ -9,7 +9,7 @@ const express = require('express'),
 router.get('/', shopController.getHomePage);
 
 //renders the shop/product-list.ejs file which displays all of our products
-router.get('/products', shopController.getProducts);
+router.get('/products', isAuth, shopController.getProducts);
 
 //renders a unique dynamic route that has the product details based on the product ID
 router.get('/products/:productId', shopController.getProduct);

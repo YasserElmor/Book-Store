@@ -1,5 +1,8 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
+const {
+    validationResult
+} = require('express-validator');
 const crypto = require('crypto');
 require('dotenv').config({
     path: './sendgrid.env'
@@ -59,15 +62,15 @@ exports.getSignup = (req, res, next) => {
 exports.postSignup = async (req, res, next) => {
     const {
         email,
-        password,
-        confirmPassword
+        password
     } = req.body;
-    const fetchedUser = await User.findOne({
-        email: email
-    });
-    if (fetchedUser) {
-        req.flash('error', 'This email is already registered!');
-        return res.redirect('/signup');
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).render('auth/signup', {
+            path: '/signup',
+            pageTitle: 'Signup',
+            errorMessage: errors.array()[0].msg
+        });
     }
     //12 is a highly secure and efficient value for salting
     const hashedPass = await bcrypt.hash(password, 12);
@@ -80,6 +83,8 @@ exports.postSignup = async (req, res, next) => {
     });
     return user.save()
         .then(() => {
+            return res.redirect('/login');
+            /*
             res.redirect('/login');
             //we're redirecting first since redirecting is not reliant on sending the mail
             return sgMail.send({
@@ -90,6 +95,7 @@ exports.postSignup = async (req, res, next) => {
                     <h1> Successfully Signed Up! </h1>
                 `
             });
+            */
         })
         .catch(err => {
             throw err;
