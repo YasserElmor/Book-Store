@@ -11,37 +11,41 @@ const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 exports.getLogin = (req, res, next) => {
-    let errMessage = req.flash('error')[0];
     res.render('auth/login', {
         path: '/login',
         pageTitle: 'Login',
-        errorMessage: errMessage
+        errorMessage: null,
+        oldInput: {
+            email: '',
+            password: ''
+        },
+        validationErrors: []
     });
 };
 
 exports.postLogin = async (req, res, next) => {
-    const {
-        email,
-        password
-    } = req.body;
-    const user = await User.findOne({
-        email: email
-    });
-    if (!user) {
-        req.flash('error', 'Invalid email');
-        return res.redirect('/login');
-    }
-    const truePass = await bcrypt.compare(password, user.password);
-    if (truePass) {
-        req.session.user = user;
-        req.session.isAuthenticated = true;
-        return req.session.save(() => {
-            //to prevent redirection before the values are stored in the sessions collection in the database
-            res.redirect('/');
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).render('auth/login', {
+            path: '/login',
+            pageTitle: 'Login',
+            errorMessage: errors.array()[0].msg,
+            oldInput: {
+                email: req.body.email,
+                password: req.body.password
+            },
+            validationErrors: errors.array()
         });
     }
-    req.flash('error', 'Invalid password');
-    return res.redirect('/login');
+    const user = await User.findOne({
+        email: req.body.email
+    });
+    req.session.user = user;
+    req.session.isAuthenticated = true;
+    return req.session.save(() => {
+        //to prevent redirection before the values are stored in the sessions collection in the database
+        res.redirect('/');
+    });
 };
 
 exports.postLogout = (req, res, next) => {
@@ -51,25 +55,37 @@ exports.postLogout = (req, res, next) => {
 };
 
 exports.getSignup = (req, res, next) => {
-    let errMessage = req.flash('error')[0];
     res.render('auth/signup', {
         path: '/signup',
         pageTitle: 'Signup',
-        errorMessage: errMessage
+        errorMessage: null,
+        oldInput: {
+            email: '',
+            password: '',
+            confirmPassword: ''
+        },
+        validationErrors: []
     });
 };
 
 exports.postSignup = async (req, res, next) => {
     const {
         email,
-        password
+        password,
+        confirmPassword
     } = req.body;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(422).render('auth/signup', {
             path: '/signup',
             pageTitle: 'Signup',
-            errorMessage: errors.array()[0].msg
+            errorMessage: errors.array()[0].msg,
+            oldInput: {
+                email: email,
+                password: password,
+                confirmPassword: confirmPassword
+            },
+            validationErrors: errors.array()
         });
     }
     //12 is a highly secure and efficient value for salting
@@ -113,10 +129,7 @@ exports.getReset = (req, res, next) => {
 
 exports.postReset = (req, res, next) => {
     const email = req.body.email;
-    crypto.randomBytes(32, async (err, buffer) => {
-        if (err) {
-            return redirect('/reset');
-        }
+    crypto.randomBytes(32, async (_err, buffer) => {
         const token = buffer.toString('hex');
         const user = await User.findOne({
             email: email
