@@ -2,17 +2,22 @@ const Product = require('../models/product');
 const {
   validationResult
 } = require('express-validator');
+const catchError500 = require('../util/catchError500');
+
 
 exports.getAddProducts = (req, res, next) => {
-  res.render('admin/edit-product', {
-    pageTitle: "Add Products",
-    path: "/admin/add-product",
-    editing: req.query.edit,
-    errorMessage: null,
-    validationErrors: []
-  });
+  try {
+    res.render('admin/edit-product', {
+      pageTitle: "Add Products",
+      path: "/admin/add-product",
+      editing: req.query.edit,
+      errorMessage: null,
+      validationErrors: []
+    });
+  } catch (err) {
+    return next(catchError500(err));
+  }
 };
-
 exports.postAddProducts = (req, res, next) => {
   const {
     title,
@@ -48,7 +53,7 @@ exports.postAddProducts = (req, res, next) => {
       res.redirect('/admin/products');
     })
     .catch(err => {
-      throw err;
+      return next(catchError500(err));
     });
 };
 
@@ -63,6 +68,9 @@ exports.getAdminProducts = (req, res, next) => {
         prods: products,
         hasProducts: products.length > 0,
       });
+    })
+    .catch(err => {
+      return next(catchError500(err));
     });
 };
 
@@ -78,6 +86,9 @@ exports.getEditProduct = (req, res, next) => {
         errorMessage: null,
         validationErrors: []
       });
+    })
+    .catch(err => {
+      return next(catchError500(err));
     });
 };
 
@@ -117,7 +128,7 @@ exports.postEditProduct = (req, res, next) => {
           res.redirect('/admin/products');
         })
         .catch(err => {
-          throw err;
+          return next(catchError500(err));
         });
     });
 };
@@ -132,6 +143,6 @@ exports.postDeleteProduct = (req, res, next) => {
       res.redirect('/admin/products');
     })
     .catch(err => {
-      throw err;
+      return next(catchError500(err));
     });
 };

@@ -48,7 +48,7 @@ app.use((req, res, next) => {
             next();
         })
         .catch(err => {
-            throw err;
+            next(new Error(err));
         });
 });
 
@@ -65,7 +65,9 @@ app.use('/admin', adminRoutes);
 app.use(authRoutes);
 app.use(errorRoutes);
 
-
+app.use((error, req, res, next) => {
+    res.redirect('/500');
+});
 
 mongoose.connect(MONGODB_URI)
     .then(() => {

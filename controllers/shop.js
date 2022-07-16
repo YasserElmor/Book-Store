@@ -1,5 +1,6 @@
 const Product = require('../models/product');
 const Order = require('../models/order');
+const catchError500 = require('../util/catchError500');
 
 exports.getHomePage = (req, res, next) => {
   Product.find()
@@ -9,6 +10,9 @@ exports.getHomePage = (req, res, next) => {
         path: '/',
         prods: products,
       });
+    })
+    .catch(err => {
+      return next(catchError500(err));
     });
 };
 
@@ -25,7 +29,7 @@ exports.getProducts = (req, res, next) => {
       });
     })
     .catch(err => {
-      throw err;
+      return next(catchError500(err));
     });
 };
 
@@ -41,7 +45,7 @@ exports.getProduct = (req, res, next) => {
       });
     })
     .catch(err => {
-      throw err;
+      return next(catchError500(err));
     });
 };
 
@@ -55,7 +59,7 @@ exports.getCart = ((req, res, next) => {
       });
     })
     .catch(err => {
-      throw err;
+      return next(catchError500(err));
     });
 });
 
@@ -68,6 +72,9 @@ exports.postCart = (req, res, next) => {
     })
     .then(() => {
       res.redirect('/cart');
+    })
+    .catch(err => {
+      return next(catchError500(err));
     });
 };
 
@@ -76,6 +83,9 @@ exports.deleteCartProduct = (req, res, next) => {
   return req.user.deleteProduct(prodId)
     .then(() => {
       res.redirect('/cart');
+    })
+    .catch(err => {
+      return next(catchError500(err));
     });
 };
 
@@ -85,7 +95,7 @@ exports.postAddOrder = (req, res, next) => {
       res.redirect('/orders');
     })
     .catch(err => {
-      throw err;
+      return next(catchError500(err));
     });
 };
 
@@ -100,12 +110,19 @@ exports.getOrders = (req, res, next) => {
         path: '/orders',
         orders: orders,
       });
+    })
+    .catch(err => {
+      return next(catchError500(err));
     });
 };
 
 exports.getCheckout = (req, res, next) => {
-  res.render('shop/checkout', {
-    pageTitle: 'Checkout',
-    path: '/checkout',
-  });
+  try {
+    res.render('shop/checkout', {
+      pageTitle: 'Checkout',
+      path: '/checkout',
+    });
+  } catch (err) {
+    return next(catchError500(err));
+  }
 };
