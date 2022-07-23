@@ -1,36 +1,35 @@
+const fs = require('fs');
+const path = require('path');
+const PDFDocument = require('pdfkit');
 const Product = require('../models/product');
 const Order = require('../models/order');
 const catchError500 = require('../util/catchError500');
-
-exports.getHomePage = (req, res, next) => {
-  Product.find()
-    .then(products => {
-      res.render('shop/index', {
-        pageTitle: 'Home Page',
-        path: '/',
-        prods: products,
-      });
-    })
-    .catch(err => {
-      return next(catchError500(err));
+const shopData = require('../util/shopData');
+const ITEMS_PER_PAGE = 1; //number of items displayed on a single page
+exports.getHomePage = async (req, res, next) => {
+  try {
+    const props = await shopData(req.query.page, ITEMS_PER_PAGE);
+    res.render('shop/index', {
+      pageTitle: 'Home Page',
+      path: '/',
+      ...props
     });
+  } catch (err) {
+    return next(catchError500(err));
+  }
 };
 
-exports.getProducts = (req, res, next) => {
-  Product.find({
-      userId: req.user._id
-    })
-    .then(products => {
-      res.render("shop/product-list", {
-        pageTitle: "Products",
-        prods: products,
-        path: '/products',
-        hasProducts: products.length > 0,
-      });
-    })
-    .catch(err => {
-      return next(catchError500(err));
+exports.getProducts = async (req, res, next) => {
+  try {
+    const props = await shopData(req.query.page, ITEMS_PER_PAGE);
+    res.render("shop/product-list", {
+      pageTitle: "Products",
+      path: '/products',
+      ...props
     });
+  } catch (err) {
+    return next(catchError500(err));
+  }
 };
 
 exports.getProduct = (req, res, next) => {
@@ -125,4 +124,47 @@ exports.getCheckout = (req, res, next) => {
   } catch (err) {
     return next(catchError500(err));
   }
+};
+
+exports.getInvoice = async (req, res, next) => {
+  try {
+    const orderId = req.params.orderId;
+    const order = await Order.findOne({
+      '_id': req.params.orderId,
+      'user.userId': req.user._id
+    });
+    if (order.length === 0) {
+      throw new Error('Unauthorized attempt at downloading order invoice!');
+    }
+    const invoiceName = `invoice-${orderId}.pdf`;
+    const invoicePath = path.join('data', 'invoices', invoiceName);
+    const pdfDoc = new PDFDocument();
+    //we're using streams instead of reading the file directly
+    //to stream the file data instead of buffering it
+    //the pdfDoc instance is a readStream that could be piped to a writeStream
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="${invoiceName}"`);
+    pdfDoc.pipe(fs.createWriteStream(invoicePath));
+    pdfDoc.pipe(res); //note that the response object is also a writeStream
+    // #region order's invoice pdf file structure
+    pdfDoc.fontSize(26).text('Invoice', {
+      underline: true
+    });
+    pdfDoc.fontSize(6).text('\n');
+    let product;
+    let totalPrice = 0;
+    for (let prod of order.products) {
+      product = prod.product;
+      totalPrice += product.price * prod.quantity;
+      pdfDoc.fontSize(14).text(`${product.title}: ${prod.quantity} × $${product.price}`);
+    }
+    pdfDoc.text('\n');
+    pdfDoc.text('---------------------------');
+    pdfDoc.fontSize(20).text(`Total Price: $${totalPrice}`);
+    //#endregion
+    pdfDoc.end();
+  } catch (err) {
+    return next(catchError500(err));
+  }
+
 };

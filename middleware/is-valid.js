@@ -4,6 +4,9 @@ const User = require('../models/user'),
         check,
         body
     } = require('express-validator');
+const path = require('path');
+const Product = require('../models/product');
+
 
 const postSignupValidation = [
     body('email', 'Please enter a valid email')
@@ -68,8 +71,30 @@ const postProductValidation = [
     .isLength({
         min: 3
     }),
-    body('imageUrl', 'invalid URL format')
-    .isURL(),
+    check('image', 'Please upload an image!')
+    .custom((_image, {
+        req
+    }) => {
+
+        if (!req.file) {
+            if (!req.query.edit) {
+                return false;
+            }
+            return true;
+        } else {
+            extension = (path.extname(req.file.filename)).toLowerCase();
+            switch (extension) {
+                case '.jpg':
+                    return '.jpg';
+                case '.jpeg':
+                    return '.jpeg';
+                case '.png':
+                    return '.png';
+                default:
+                    return false;
+            }
+        }
+    }),
     body('price', 'please enter a valid price')
     .isFloat(),
     body('description', 'description should be between 5 and 400 characters')

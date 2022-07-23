@@ -7,7 +7,6 @@ const express = require('express'),
     } = require('../middleware/is-valid');
 
 
-
 // renders the admin/add-product.ejs file which comprises the add-product form
 router.get('/add-product', isAuth, adminController.getAddProducts);
 

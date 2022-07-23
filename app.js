@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
-
+const path = require('path');
+const rootDir = require('./util/path');
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({
     extended: false
@@ -8,6 +9,33 @@ app.use(bodyParser.urlencoded({
 
 const csrf = require('csurf');
 const csrfProtection = csrf();
+
+const multer = require('multer');
+const fileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'images');
+    },
+    filename: (req, file, cb) => {
+        const name = new Date().toISOString().replace(/:/g, '-') + '-' + file.originalname;
+        cb(null, name);
+    }
+});
+const fileFilter = (req, file, cb) => {
+    if (
+        file.mimetype === 'image/png' ||
+        file.mimetype === 'image/jpg' ||
+        file.mimetype === 'image/jpeg'
+    ) {
+        cb(null, true);
+    } else {
+        cb(null, false);
+    }
+};
+const upload = multer({
+    storage: fileStorage,
+    fileFilter: fileFilter
+}).single('image');
+app.use(upload);
 
 const flash = require('connect-flash');
 const mongoose = require('mongoose');
@@ -26,14 +54,13 @@ app.use(session({
     store: store
 }));
 
-const path = require('path');
-const rootDir = require('./util/path');
 const User = require('./models/user');
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const errorRoutes = require('./routes/error');
 const authRoutes = require('./routes/auth');
 app.use(express.static(path.join(rootDir, 'public')));
+app.use('/images', express.static(path.join(rootDir, 'images')));
 app.set('view engine', 'ejs');
 
 app.use((req, res, next) => {
@@ -66,6 +93,7 @@ app.use(authRoutes);
 app.use(errorRoutes);
 
 app.use((error, req, res, next) => {
+    console.log(error);
     res.redirect('/500');
 });
 

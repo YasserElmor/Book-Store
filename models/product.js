@@ -19,7 +19,7 @@ const productSchema = new Schema({
         type: String,
         required: true
     },
-    userId:{
+    userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true,
