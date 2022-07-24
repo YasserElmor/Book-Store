@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const path = require('path');
+require('dotenv').config();
 const rootDir = require('./util/path');
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({
@@ -39,7 +40,7 @@ app.use(upload);
 
 const flash = require('connect-flash');
 const mongoose = require('mongoose');
-const MONGODB_URI = 'mongodb+srv://admin:01065651408@learningcluster.5febr.mongodb.net/shop?retryWrites=true&w=majority';
+const MONGODB_URI = process.env.MONGODB_URI;
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const store = new MongoDBStore({

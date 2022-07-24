@@ -4,9 +4,7 @@ const {
     validationResult
 } = require('express-validator');
 const crypto = require('crypto');
-require('dotenv').config({
-    path: './sendgrid.env'
-});
+require('dotenv').config();
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const catchError500 = require('../util/catchError500');
