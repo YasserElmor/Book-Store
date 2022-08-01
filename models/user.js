@@ -14,8 +14,12 @@ const userSchema = new Schema({
         type: String,
         required: true,
     },
-    resetToken: String,
-    resetTokenExpiration: Date,
+    emailToken: String,
+    emailTokenExpiration: Date,
+    isActive: {
+        type: Boolean,
+        default: false
+    },
     cart: {
         items: [{
             productId: {

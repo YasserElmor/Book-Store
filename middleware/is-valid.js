@@ -36,7 +36,7 @@ const postSignupValidation = [
 ];
 
 const postLoginValidation = [
-    body('email', 'Invalid email!')
+    body('email')
     .custom(async (email, {
         req
     }) => {
@@ -44,7 +44,16 @@ const postLoginValidation = [
             email: email
         });
         if (!user) {
-            throw new Error();
+            throw new Error('Invalid email!');
+        }
+        return true;
+    })
+    .custom(async email => {
+        const fetchedUser = await User.findOne({
+            email: email
+        });
+        if (!fetchedUser.isActive) {
+            return Promise.reject('Please check your email for a verification link');
         }
         return true;
     }),

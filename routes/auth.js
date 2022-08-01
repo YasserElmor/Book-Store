@@ -10,6 +10,7 @@ router.get('/login', authController.getLogin);
 router.post('/login', postLoginValidation, authController.postLogin);
 router.post('/logout', authController.postLogout);
 router.get('/signup', authController.getSignup);
+router.get('/signup/:token', authController.getVerifySingup);
 router.post('/signup', postSignupValidation, authController.postSignup);
 router.get('/reset', authController.getReset);
 router.post('/reset', authController.postReset);

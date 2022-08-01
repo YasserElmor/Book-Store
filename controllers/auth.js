@@ -106,25 +106,54 @@ exports.postSignup = async (req, res, next) => {
     }
     //12 is a highly secure and efficient value for salting
     try {
-        const hashedPass = await bcrypt.hash(password, 12);
-        const user = new User({
-            email: email,
-            password: hashedPass,
-            cart: {
-                items: []
+        crypto.randomBytes(32, async (_err, buffer) => {
+            const token = buffer.toString('hex');
+            const hashedPass = await bcrypt.hash(password, 12);
+            const user = new User({
+                email: email,
+                password: hashedPass,
+                cart: {
+                    items: []
+                },
+                emailToken: token,
+                emailTokenExpiration: Date.now() + 3600000
+            });
+            await user.save();
+            res.redirect('/login');
+            //we're redirecting first since redirecting is not reliant on sending the mail
+            return sgMail.send({
+                to: email,
+                from: 'yasserelmor52@gmail.com', //verified sender by sendgrid
+                subject: 'Signup Verification',
+                html: `
+                    <h1> Ignore this mail if you haven't attempted signing up on bookstore.com </h1>
+                    <a href = "http://localhost:3000/signup/${token}">Click this link to verify your account</a>
+                    `
+            });
+        });
+    } catch (err) {
+        return next(catchError500(err));
+    }
+};
+
+exports.getVerifySingup = async (req, res, next) => {
+    try {
+        const inputToken = req.params.token;
+        const user = await User.findOne({
+            emailToken: inputToken,
+            emailTokenExpiration: {
+                //making sure the token hasn't expired yet
+                $gt: Date.now()
             }
         });
+        if (!user) {
+            return res.redirect('/');
+        }
+        user.emailToken = undefined;
+        user.emailTokenExpiration = undefined;
+        user.isActive = true;
         await user.save();
-        res.redirect('/login');
-        //we're redirecting first since redirecting is not reliant on sending the mail
-        return sgMail.send({
-            to: email,
-            from: 'yasserelmor52@gmail.com', //verified sender by sendgrid
-            subject: 'Successfully signed up!',
-            html: `
-                    <h1> Successfully Signed Up! </h1>
-                    `
-        });
+        return res.redirect('/login');
     } catch (err) {
         return next(catchError500(err));
     }
@@ -145,7 +174,6 @@ exports.getReset = (req, res, next) => {
 
 exports.postReset = (req, res, next) => {
     try {
-
         const email = req.body.email;
         crypto.randomBytes(32, async (_err, buffer) => {
             const token = buffer.toString('hex');
@@ -156,9 +184,9 @@ exports.postReset = (req, res, next) => {
                 req.flash('error', 'Invalid email');
                 return res.redirect('/reset');
             }
-            user.resetToken = token;
+            user.emailToken = token;
             //setting the token's expiration date to one hour from now in milliseconds
-            user.resetTokenExpiration = Date.now() + 3600000;
+            user.emailTokenExpiration = Date.now() + 3600000;
             await user.save();
             res.redirect('/');
             await sgMail.send({
@@ -182,8 +210,8 @@ exports.getNewPass = async (req, res, next) => {
         let errMessage = req.flash('error')[0];
         const inputToken = req.params.token;
         const user = await User.findOne({
-            resetToken: inputToken,
-            resetTokenExpiration: {
+            emailToken: inputToken,
+            emailTokenExpiration: {
                 //making sure the token hasn't expired yet
                 $gt: Date.now()
             }
@@ -215,14 +243,14 @@ exports.postNewPass = async (req, res, next) => {
         } = req.body;
         const user = await User.findOne({
             _id: userId,
-            resetToken: passwordToken,
-            resetTokenExpiration: {
+            emailToken: passwordToken,
+            emailTokenExpiration: {
                 $gt: Date.now()
             }
         });
         user.password = await bcrypt.hash(newPassword, 12);
-        user.resetToken = undefined;
-        user.resetTokenExpiration = undefined;
+        user.emailToken = undefined;
+        user.emailTokenExpiration = undefined;
         await user.save();
         return res.redirect('/login');
     } catch (err) {
