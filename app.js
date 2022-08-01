@@ -1,11 +1,27 @@
 const express = require('express');
 const app = express();
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 const rootDir = require('./util/path');
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({
     extended: false
+}));
+
+//Setting secure headers
+const helmet = require('helmet');
+app.use(helmet());
+//Compressing assets
+const compression = require('compression');
+app.use(compression());
+//Request logging
+const accessLogStream = fs.createWriteStream(path.join(rootDir, 'access.log'), {
+    flags: 'a'
+});
+const morgan = require('morgan');
+app.use(morgan('combined', {
+    stream: accessLogStream
 }));
 
 const csrf = require('csurf');
@@ -100,7 +116,7 @@ app.use((error, req, res, next) => {
 
 mongoose.connect(MONGODB_URI)
     .then(() => {
-        app.listen(3000);
+        app.listen(process.env.PORT || 3000);
     })
     .catch(err => {
         throw err;
