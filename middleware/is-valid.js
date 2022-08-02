@@ -13,7 +13,7 @@ const postSignupValidation = [
     .isEmail()
     .custom(async email => {
         const fetchedUser = await User.findOne({
-            email: email
+            email: email.toLowerCase()
         });
         if (fetchedUser) {
             return Promise.reject('This email is already registered!');
@@ -41,7 +41,7 @@ const postLoginValidation = [
         req
     }) => {
         const user = await User.findOne({
-            email: email
+            email: email.toLowerCase()
         });
         if (!user) {
             throw new Error('Invalid email!');

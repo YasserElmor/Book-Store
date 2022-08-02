@@ -62,7 +62,6 @@ const MongoDBStore = require('connect-mongodb-session')(session);
 const store = new MongoDBStore({
     uri: MONGODB_URI,
     collection: 'sessions',
-
 });
 app.use(session({
     secret: 'some really long string value used to hash our ID',
